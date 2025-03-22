@@ -5,6 +5,8 @@ import { eq } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
   try {
+    console.log("Incoming Webhook:", await req.text());
+
     // Ambil project_id dari URL
     const urlParts = req.nextUrl.pathname.split("/");
     const project_id = urlParts[urlParts.length - 1]; // Ambil bagian terakhir dari path
