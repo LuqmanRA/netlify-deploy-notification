@@ -5,8 +5,6 @@ import { eq } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
   try {
-    console.log("Incoming Webhook:", await req.text());
-
     // Ambil project_id dari URL
     const urlParts = req.nextUrl.pathname.split("/");
     const project_id = urlParts[urlParts.length - 1]; // Ambil bagian terakhir dari path
@@ -35,52 +33,23 @@ export async function POST(req: NextRequest) {
     let message = "";
     if (state === "building") {
       message = `🏗 Deploy *${name}* sedang dimulai...\n🔗 ${deploy_url}`;
-    } else if (state === "success") {
+    } else if (state === "ready") {
       message = `✅ Deploy *${name}* berhasil! 🎉\n🔗 ${deploy_url}`;
     } else if (state === "failed") {
       message = `❌ Deploy *${name}* gagal!\n🔗 ${deploy_url}`;
     }
 
     // Kirim notifikasi ke Lark
-    if (state === "building") {
+    if (message) {
       const response = await fetch(webhookLark, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           msg_type: "text",
-          content: {
-            text: `🚀 Deploy *${name}* sedang dimulai... 🎉\n🔗 ${deploy_url}\n📊 Status: ${state}`,
-          },
+          content: { text: message },
         }),
       });
-      if (!response.ok) {
-        throw new Error(`Failed to send notification: ${response.statusText}`);
-      }
-    } else if (state === "success") {
-      const response = await fetch(webhookLark, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          msg_type: "text",
-          content: {
-            text: `🚀 Deploy *${name}* berhasil! 🎉\n🔗 ${deploy_url}\n📊 Status: ${state}`,
-          },
-        }),
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to send notification: ${response.statusText}`);
-      }
-    } else if (state === "failed") {
-      const response = await fetch(webhookLark, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          msg_type: "text",
-          content: {
-            text: `🚀 Deploy *${name}* gagal! 🎉\n🔗 ${deploy_url}\n📊 Status: ${state}`,
-          },
-        }),
-      });
+
       if (!response.ok) {
         throw new Error(`Failed to send notification: ${response.statusText}`);
       }
