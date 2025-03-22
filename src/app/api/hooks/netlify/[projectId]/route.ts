@@ -1,52 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db"; // Import database
-import { projects } from "@/db/schema"; // Import model project
-import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { projects } from "@/db/schema";
 
-// Fungsi untuk kirim notifikasi ke Lark
-async function sendLarkNotification(webhookUrl: string, message: string) {
-  await fetch(webhookUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ msg_type: "text", content: { text: message } }),
-  });
-}
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
 
-export async function POST(
-  req: NextRequest,
-  context: { params: { projectId: string } }
-) {
-  const { projectId } = context.params;
-  const data = await req.json();
+    // Ambil data dari payload Netlify
+    const { name, deploy_url, state } = body;
+    if (!name || !deploy_url || !state) {
+      return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+    }
 
-  // Ambil project dari database berdasarkan projectId
-  const project = await db
-    .select()
-    .from(projects)
-    .where(eq(projects.id, projectId))
-    .limit(1);
+    // Kirim notifikasi ke Lark menggunakan fetch
+    const response = await fetch(process.env.LARK_WEBHOOK_URL!, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        msg_type: "text",
+        content: {
+          text: `🚀 Deploy *${name}* berhasil! 🎉\n🔗 ${deploy_url}\n📊 Status: ${state}`,
+        },
+      }),
+    });
 
-  if (!project || project.length === 0) {
-    return NextResponse.json({ error: "Project not found" }, { status: 404 });
-  }
+    if (!response.ok) {
+      throw new Error(`Failed to send notification: ${response.statusText}`);
+    }
 
-  const webhookLark = project[0].webhook_lark;
-  if (!webhookLark) {
     return NextResponse.json(
-      { error: "No Lark Webhook found" },
-      { status: 400 }
+      { message: "Notification sent to Lark" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
     );
   }
-
-  // Ambil status dari payload Netlify
-  const deployStatus = data.state; // misalnya "ready", "building", "failed"
-  const siteName = data.name;
-  const deployUrl = data.deploy_ssl_url || data.admin_url;
-
-  const message = `🚀 Deploy Update: **${siteName}**\n🔹 Status: ${deployStatus}\n🔗 [View Deploy](${deployUrl})`;
-
-  // Kirim notifikasi ke Lark
-  await sendLarkNotification(webhookLark, message);
-
-  return NextResponse.json({ message: "Notification sent" });
 }
