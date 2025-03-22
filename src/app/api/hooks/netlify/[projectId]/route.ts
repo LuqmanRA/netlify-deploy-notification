@@ -14,9 +14,9 @@ async function sendLarkNotification(webhookUrl: string, message: string) {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { projectId: string } }
+  context: { params: { projectId: string } }
 ) {
-  const projectId = params.projectId;
+  const { projectId } = context.params;
   const data = await req.json();
 
   // Ambil project dari database berdasarkan projectId
