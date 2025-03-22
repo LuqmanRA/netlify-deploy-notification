@@ -5,12 +5,16 @@ import { eq } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
   try {
+    // Log payload mentah untuk debugging
+    const payloadText = await req.text();
+    console.log("Incoming Webhook Payload:", payloadText);
     // Ambil project_id dari URL
     const urlParts = req.nextUrl.pathname.split("/");
     const project_id = urlParts[urlParts.length - 1]; // Ambil bagian terakhir dari path
 
     const body = await req.json();
     const { name, deploy_url, state } = body;
+    console.log(body);
 
     if (!name || !deploy_url || !state) {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
