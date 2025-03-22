@@ -10,9 +10,8 @@ export async function POST(req: NextRequest) {
     const project_id = urlParts[urlParts.length - 1]; // Ambil bagian terakhir dari path
 
     const body = await req.json();
-
-    // Ambil data dari payload Netlify
     const { name, deploy_url, state } = body;
+
     if (!name || !deploy_url || !state) {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
@@ -30,20 +29,30 @@ export async function POST(req: NextRequest) {
 
     const webhookLark = project[0].webhook_lark;
 
-    // Kirim notifikasi ke Lark menggunakan webhook dari database
-    const response = await fetch(webhookLark, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        msg_type: "text",
-        content: {
-          text: `🚀 Deploy *${name}* berhasil! 🎉\n🔗 ${deploy_url}\n📊 Status: ${state}`,
-        },
-      }),
-    });
+    // Tentukan pesan berdasarkan status deploy
+    let message = "";
+    if (state === "building") {
+      message = `🏗 Deploy *${name}* sedang dimulai...\n🔗 ${deploy_url}`;
+    } else if (state === "success") {
+      message = `✅ Deploy *${name}* berhasil! 🎉\n🔗 ${deploy_url}`;
+    } else if (state === "failed") {
+      message = `❌ Deploy *${name}* gagal!\n🔗 ${deploy_url}`;
+    }
 
-    if (!response.ok) {
-      throw new Error(`Failed to send notification: ${response.statusText}`);
+    // Kirim notifikasi ke Lark
+    if (message) {
+      const response = await fetch(webhookLark, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          msg_type: "text",
+          content: { text: message },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to send notification: ${response.statusText}`);
+      }
     }
 
     return NextResponse.json(
