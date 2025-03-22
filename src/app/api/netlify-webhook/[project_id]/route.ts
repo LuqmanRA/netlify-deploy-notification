@@ -13,10 +13,9 @@ export async function POST(req: NextRequest) {
     const project_id = urlParts[urlParts.length - 1]; // Ambil bagian terakhir dari path
 
     const body = await req.json();
-    const { name, deploy_url, state } = body;
-    console.log(body);
+    const { name, deploy_url, state, error_message } = body;
 
-    if (!name || !deploy_url || !state) {
+    if (!name || !deploy_url || !state || !error_message) {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
 
@@ -39,8 +38,8 @@ export async function POST(req: NextRequest) {
       message = `🏗 Deploy *${name}* sedang dimulai...\n🔗 ${deploy_url}`;
     } else if (state === "ready") {
       message = `✅ Deploy *${name}* berhasil! 🎉\n🔗 ${deploy_url}`;
-    } else if (state === "failed") {
-      message = `❌ Deploy *${name}* gagal!\n🔗 ${deploy_url}`;
+    } else if (state === "error") {
+      message = `❌ Deploy *${name}* gagal!\n🔗 ${deploy_url}* ${error_message}`;
     }
 
     // Kirim notifikasi ke Lark
