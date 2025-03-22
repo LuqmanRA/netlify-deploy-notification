@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     console.log("Incoming Webhook Payload:", body);
     const { name, deploy_url, state, error_message } = body;
 
-    if (!name || !deploy_url || !state || !error_message) {
+    if (!name || !deploy_url || !state) {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
 
