@@ -40,16 +40,45 @@ export async function POST(req: NextRequest) {
     }
 
     // Kirim notifikasi ke Lark
-    if (message) {
+    if (state === "building") {
       const response = await fetch(webhookLark, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           msg_type: "text",
-          content: { text: message },
+          content: {
+            text: `🚀 Deploy *${name}* sedang dimulai... 🎉\n🔗 ${deploy_url}\n📊 Status: ${state}`,
+          },
         }),
       });
-
+      if (!response.ok) {
+        throw new Error(`Failed to send notification: ${response.statusText}`);
+      }
+    } else if (state === "success") {
+      const response = await fetch(webhookLark, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          msg_type: "text",
+          content: {
+            text: `🚀 Deploy *${name}* berhasil! 🎉\n🔗 ${deploy_url}\n📊 Status: ${state}`,
+          },
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to send notification: ${response.statusText}`);
+      }
+    } else if (state === "failed") {
+      const response = await fetch(webhookLark, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          msg_type: "text",
+          content: {
+            text: `🚀 Deploy *${name}* gagal! 🎉\n🔗 ${deploy_url}\n📊 Status: ${state}`,
+          },
+        }),
+      });
       if (!response.ok) {
         throw new Error(`Failed to send notification: ${response.statusText}`);
       }
