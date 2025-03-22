@@ -7,7 +7,7 @@ export async function POST(req: Request) {
 
   await db
     .insert(projects)
-    .values({ id: projectId, name: "My Project", webhook_lark: webhookLark });
+    .values({ project_id: projectId, webhook_lark: webhookLark });
 
   return NextResponse.json({ message: "Project saved" });
 }

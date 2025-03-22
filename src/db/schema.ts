@@ -8,7 +8,7 @@ export const users = pgTable("users", {
 });
 
 export const projects = pgTable("projects", {
-  id: varchar("id", { length: 255 }).primaryKey(), // Project ID dari Netlify
-  name: text("name").notNull(),
+  id: serial("id").primaryKey(),
+  project_id: text("project_id").notNull(), // Project ID dari Netlify
   webhook_lark: text("webhook_lark").notNull(), // Webhook untuk kirim ke Lark
 });

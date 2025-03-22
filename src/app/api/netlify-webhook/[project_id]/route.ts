@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { projects } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
   try {
+    // Ambil project_id dari URL
+    const urlParts = req.nextUrl.pathname.split("/");
+    const project_id = urlParts[urlParts.length - 1]; // Ambil bagian terakhir dari path
+
     const body = await req.json();
 
     // Ambil data dari payload Netlify
@@ -12,8 +17,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
 
-    // Kirim notifikasi ke Lark menggunakan fetch
-    const response = await fetch(process.env.LARK_WEBHOOK_URL!, {
+    // Cari project di database berdasarkan project_id
+    const project = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.project_id, project_id))
+      .limit(1);
+
+    if (project.length === 0) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
+    const webhookLark = project[0].webhook_lark;
+
+    // Kirim notifikasi ke Lark menggunakan webhook dari database
+    const response = await fetch(webhookLark, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
