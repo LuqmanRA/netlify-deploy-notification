@@ -10,7 +10,6 @@ export async function POST(req: NextRequest) {
     const project_id = urlParts[urlParts.length - 1]; // Ambil bagian terakhir dari path
 
     const body = await req.json();
-    console.log("Incoming Webhook Payload:", body);
     const { name, deploy_url, state, error_message } = body;
 
     if (!name || !deploy_url || !state) {
