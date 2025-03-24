@@ -122,7 +122,7 @@ export default function Dashboard() {
             <form onSubmit={handleSubmit}>
               <DialogHeader>
                 <DialogTitle>
-                  {editingId ? "Edit Webhook" : "Add New Webhook"}
+                  {editingId ? "Edit Project" : "Add New Project"}
                 </DialogTitle>
                 <DialogDescription>
                   Enter the project ID and webhook URL for Lark.

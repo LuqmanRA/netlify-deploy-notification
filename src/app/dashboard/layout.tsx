@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { DashboardHeader } from "@/components/dashboardHeader";
 import DashboardFooter from "@/components/dashboardFooter";
 
-export default async function RootLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
