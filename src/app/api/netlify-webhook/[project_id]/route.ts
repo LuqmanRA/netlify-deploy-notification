@@ -39,15 +39,16 @@ export async function POST(req: NextRequest) {
     if (state === "building") {
       message = `🏗 Deploy *${name}* sedang dimulai...\n🔗 ${deploy_url}`;
       totalDeploy += 1;
+      console.log("payload netlify:", body);
     } else if (state === "ready") {
       message = `✅ Deploy *${name}* berhasil! 🎉\n🔗 ${deploy_url}`;
       successCount += 1;
+      console.log("payload netlify:", body);
     } else if (state === "error") {
       message = `❌ Deploy *${name}* gagal!\n🔗 ${deploy_url}* ${error_message}`;
       failedCount += 1;
+      console.log("payload netlify:", body);
     }
-
-    console.log("Updating counts:", { totalDeploy, successCount, failedCount });
 
     // Update counter di database
     const updateResult = await db
