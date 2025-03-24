@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "My Next.js App",
-  description: "This is a Next.js application with metadata support.",
+  title: "Notification Netlify",
+  description: "This is a Dashboard application with metadata support.",
 };
 
 export default function RootLayout({

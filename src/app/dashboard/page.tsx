@@ -40,6 +40,8 @@ export default function Dashboard() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [projectIdError, setProjectIdError] = useState(""); // Error untuk Project ID
+  const [webhookLarkError, setWebhookLarkError] = useState(""); // Error untuk Webhook Lark
 
   useEffect(() => {
     fetchProjects();
@@ -51,9 +53,18 @@ export default function Dashboard() {
     setProjects(data);
   }
 
+  useEffect(() => {
+    if (!open) {
+      setProjectIdError("");
+      setWebhookLarkError("");
+    }
+  }, [open]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsLoading(true);
+    setProjectIdError("");
+    setWebhookLarkError("");
 
     const payload = editingId
       ? { id: editingId, projectId, webhookLark }
@@ -67,10 +78,18 @@ export default function Dashboard() {
       body: JSON.stringify(payload),
     });
 
-    if (res.ok) {
-      await fetchProjects();
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (data.errors) {
+        setProjectIdError(data.errors.projectId || "");
+        setWebhookLarkError(data.errors.webhookLark || "");
+      }
+      setIsLoading(false);
+      return;
     }
 
+    await fetchProjects();
     setIsLoading(false);
     setEditingId(null);
     setProjectId("");
@@ -139,8 +158,12 @@ export default function Dashboard() {
                     onChange={(e) => setProjectId(e.target.value)}
                     className="col-span-3"
                     placeholder="project-123"
-                    required
                   />
+                  {projectIdError && (
+                    <p className="text-red-500 text-sm col-span-4">
+                      {projectIdError}
+                    </p>
+                  )}
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="webhookLark" className="text-left">
@@ -152,8 +175,12 @@ export default function Dashboard() {
                     onChange={(e) => setWebhookLark(e.target.value)}
                     className="col-span-3"
                     placeholder="https://open.larksuite.com/webhook/v1/..."
-                    required
                   />
+                  {webhookLarkError && (
+                    <p className="text-red-500 text-sm col-span-4">
+                      {webhookLarkError}
+                    </p>
+                  )}
                 </div>
               </div>
               <DialogFooter>
