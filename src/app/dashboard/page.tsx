@@ -77,7 +77,6 @@ export default function Dashboard() {
       }
     }
 
-    alert("Project & Webhook Lark saved!");
     setEditingId(null);
     setProjectId("");
     setWebhookLark("");
@@ -120,7 +119,7 @@ export default function Dashboard() {
             }}
           >
             <DialogTrigger asChild>
-              <Button>
+              <Button className="cursor-pointer">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Create
               </Button>
@@ -164,7 +163,9 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit">{editingId ? "Update" : "Save"}</Button>
+                  <Button type="submit" className="cursor-pointer">
+                    {editingId ? "Update" : "Save"}
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -208,7 +209,7 @@ export default function Dashboard() {
                         onClick={() => handleEdit(webhook)}
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-8 w-8 cursor-pointer"
                       >
                         <Edit className="h-4 w-4" />
                         <span className="sr-only">Edit</span>
@@ -217,7 +218,7 @@ export default function Dashboard() {
                         variant="ghost"
                         size="icon"
                         onClick={() => deleteProject(webhook.id)}
-                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4" />
                         <span className="sr-only">Delete</span>
