@@ -29,14 +29,16 @@ export async function POST(req: NextRequest) {
 
     const webhookLark = project[0].webhook_lark;
 
-    // Tentukan pesan berdasarkan status deploy
+    // Gunakan COALESCE untuk menghindari NULL
+    let totalDeploy = project[0].total_deploy ?? 0;
+    let successCount = project[0].success_count ?? 0;
+    let failedCount = project[0].failed_count ?? 0;
+
     let message = "";
-    let totalDeploy = project[0].total_deploy || 0;
-    let successCount = project[0].success_count || 0;
-    let failedCount = project[0].failed_count || 0;
 
     if (state === "building") {
       message = `🏗 Deploy *${name}* sedang dimulai...\n🔗 ${deploy_url}`;
+      totalDeploy += 1;
     } else if (state === "ready") {
       message = `✅ Deploy *${name}* berhasil! 🎉\n🔗 ${deploy_url}`;
       successCount += 1;
@@ -45,17 +47,20 @@ export async function POST(req: NextRequest) {
       failedCount += 1;
     }
 
-    totalDeploy += 1;
+    console.log("Updating counts:", { totalDeploy, successCount, failedCount });
 
     // Update counter di database
-    await db
+    const updateResult = await db
       .update(projects)
       .set({
         total_deploy: totalDeploy,
         success_count: successCount,
         failed_count: failedCount,
       })
-      .where(eq(projects.project_id, project_id));
+      .where(eq(projects.project_id, project_id))
+      .returning();
+
+    console.log("Update result:", updateResult);
 
     // Kirim notifikasi ke Lark
     if (message) {
