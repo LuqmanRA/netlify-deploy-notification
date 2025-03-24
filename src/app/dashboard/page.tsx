@@ -29,6 +29,9 @@ interface Project {
   id: number;
   project_id: string;
   webhook_lark: string;
+  total_deploy: string;
+  success_count: string;
+  failed_count: string;
 }
 
 export default function Dashboard() {
@@ -176,6 +179,9 @@ export default function Dashboard() {
                 <TableHead className="w-[100px]">No.</TableHead>
                 <TableHead>Project ID</TableHead>
                 <TableHead>Webhook Lark</TableHead>
+                <TableHead>Deploy</TableHead>
+                <TableHead>Success</TableHead>
+                <TableHead>Failed</TableHead>
                 <TableHead className="w-[100px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -186,6 +192,15 @@ export default function Dashboard() {
                   <TableCell>{webhook.project_id}</TableCell>
                   <TableCell className="font-mono text-sm">
                     {webhook.webhook_lark}
+                  </TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {webhook.total_deploy}
+                  </TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {webhook.success_count}
+                  </TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {webhook.failed_count}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
