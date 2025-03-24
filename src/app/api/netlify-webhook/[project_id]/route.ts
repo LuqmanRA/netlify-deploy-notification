@@ -31,13 +31,31 @@ export async function POST(req: NextRequest) {
 
     // Tentukan pesan berdasarkan status deploy
     let message = "";
+    let totalDeploy = project[0].total_deploy || 0;
+    let successCount = project[0].success_count || 0;
+    let failedCount = project[0].failed_count || 0;
+
     if (state === "building") {
       message = `🏗 Deploy *${name}* sedang dimulai...\n🔗 ${deploy_url}`;
     } else if (state === "ready") {
       message = `✅ Deploy *${name}* berhasil! 🎉\n🔗 ${deploy_url}`;
+      successCount += 1;
     } else if (state === "error") {
       message = `❌ Deploy *${name}* gagal!\n🔗 ${deploy_url}* ${error_message}`;
+      failedCount += 1;
     }
+
+    totalDeploy += 1;
+
+    // Update counter di database
+    await db
+      .update(projects)
+      .set({
+        total_deploy: totalDeploy,
+        success_count: successCount,
+        failed_count: failedCount,
+      })
+      .where(eq(projects.project_id, project_id));
 
     // Kirim notifikasi ke Lark
     if (message) {
@@ -56,7 +74,12 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { message: "Notification sent to Lark" },
+      {
+        message: "Notification sent to Lark",
+        totalDeploy,
+        successCount,
+        failedCount,
+      },
       { status: 200 }
     );
   } catch (error) {
