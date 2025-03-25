@@ -20,11 +20,14 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
+
     const result = await signIn("credentials", {
       username,
       password,
@@ -32,13 +35,12 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
-      alert("Login gagal: " + result.error);
+      setError(result.error);
     } else {
-      setTimeout(() => {
-        setIsLoading(false);
-        router.push("/dashboard");
-      }, 1000);
+      router.push("/dashboard");
     }
+
+    setIsLoading(false);
   };
 
   return (
@@ -64,7 +66,6 @@ export default function LoginPage() {
               <Input
                 id="username"
                 placeholder="Enter your username"
-                required
                 autoComplete="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -76,12 +77,14 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 placeholder="••••••••"
-                required
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
+            {error && (
+              <div className="text-red-500 text-sm text-center">{error}</div>
+            )}
             <Button
               type="submit"
               className="w-full cursor-pointer"
@@ -92,8 +95,9 @@ export default function LoginPage() {
           </form>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <p className="text-sm text-muted-foreground">
-            Secure login for authorized users only
+          <p className="text-sm text-center text-muted-foreground">
+            For authorized administrators only. Ensure your credentials are
+            secure.
           </p>
         </CardFooter>
       </Card>

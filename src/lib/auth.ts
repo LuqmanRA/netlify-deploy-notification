@@ -29,15 +29,16 @@ export const authOptions: NextAuthOptions = {
           .then((res) => res[0]); // Ambil user pertama
 
         if (!user) {
-          throw new Error("User not found");
+          throw new Error("Invalid username and password");
         }
 
         const validPassword = await bcrypt.compare(
           credentials.password,
           user.password
         );
+
         if (!validPassword) {
-          throw new Error("Invalid password");
+          throw new Error("Invalid username and password");
         }
 
         return {
