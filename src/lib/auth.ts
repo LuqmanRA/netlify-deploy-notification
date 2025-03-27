@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
           .select()
           .from(users)
           .where(eq(users.username, credentials.username))
-          .then((res) => res[0]); // Ambil user pertama
+          .then((res) => res[0]);
 
         if (!user) {
           throw new Error("Invalid username and password");
@@ -42,7 +42,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         return {
-          id: String(user.id), // Pastikan `id` ada
+          id: String(user.id),
           name: user.username,
         };
       },
@@ -63,7 +63,7 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (token.id) {
-        (session.user as any).id = token.id; // Tambahkan ID ke session
+        (session.user as any).id = token.id;
       }
       return session;
     },
