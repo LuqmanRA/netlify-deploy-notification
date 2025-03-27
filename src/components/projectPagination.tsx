@@ -23,6 +23,11 @@ const ProjectPagination = ({
   onPageChange,
   itemsPerPage,
   setItemsPerPage,
+  filteredData,
+  projects,
+  searchQuery,
+  indexOfFirstItem,
+  indexOfLastItem,
 }: any) => {
   const getPageNumbers = () => {
     const pageNumbers = [];
@@ -49,18 +54,22 @@ const ProjectPagination = ({
     <div className="flex items-center justify-between w-full">
       <div className="flex items-center space-x-2 w-full">
         <p className="text-sm hidden md:block text-muted-foreground">
-          Showing{" "}
-          <span className="font-medium">
-            {(currentPage - 1) * itemsPerPage + 1}
-          </span>{" "}
-          to
-          <span className="font-medium">
-            {" "}
-            {Math.min(currentPage * itemsPerPage, totalPages * itemsPerPage)}
-          </span>{" "}
-          of
-          <span className="font-medium"> {totalPages * itemsPerPage}</span>{" "}
-          entries
+          {filteredData.length > 0 ? (
+            <>
+              Showing{" "}
+              <span className="font-medium">{indexOfFirstItem + 1}</span> to{" "}
+              <span className="font-medium">
+                {Math.min(indexOfLastItem, filteredData.length)}
+              </span>{" "}
+              of <span className="font-medium">{filteredData.length}</span>{" "}
+              entries
+              {searchQuery && (
+                <> (filtered from {projects.length} total entries)</>
+              )}
+            </>
+          ) : (
+            "No matching entries found"
+          )}
         </p>
         <div className="flex items-center space-x-2">
           <p className="text-sm hidden md:block text-muted-foreground">
@@ -115,6 +124,8 @@ const ProjectPagination = ({
               <PaginationItem key={`ellipsis-${index}`}>
                 <PaginationEllipsis />
               </PaginationItem>
+            ) : searchQuery ? (
+              ""
             ) : (
               <PaginationItem key={index}>
                 <PaginationLink
