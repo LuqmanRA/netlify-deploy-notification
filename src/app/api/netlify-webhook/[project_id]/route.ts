@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       totalDeploy += 1;
       console.log("payload netlify:", body);
     } else if (state === "ready") {
-      message = `✅ Deploy succeeded for ${name}\nCommit ID: ${commit_ref}\nDeploy URL: ${deploy_url} \nProduction URL: ${url}\nDeploy time: ${deploy_time}`;
+      message = `✅ Deploy succeeded for ${name}\nCommit ID: ${commit_ref}\nDeploy URL: ${deploy_url} \nProduction URL: ${url}\nDeploy time: ${deploy_time}s`;
       successCount += 1;
       console.log("payload netlify:", body);
     } else if (state === "error") {
