@@ -1,28 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PlusCircle, Edit, Trash2, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import ProjectTable from "@/components/projectTable";
+import ProjectDialog from "@/components/projectDialog";
+import { toast } from "sonner";
+import ProjectPagination from "@/components/projectPagination";
 
 interface Project {
   id: number;
@@ -40,8 +22,10 @@ export default function Dashboard() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [projectIdError, setProjectIdError] = useState(""); // Error untuk Project ID
-  const [webhookLarkError, setWebhookLarkError] = useState(""); // Error untuk Webhook Lark
+  const [projectIdError, setProjectIdError] = useState("");
+  const [webhookLarkError, setWebhookLarkError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
 
   useEffect(() => {
     fetchProjects();
@@ -90,6 +74,11 @@ export default function Dashboard() {
     }
 
     await fetchProjects();
+    if (editingId) {
+      toast.success("Update successful!");
+    } else {
+      toast.success("Create successful!");
+    }
     setIsLoading(false);
     setEditingId(null);
     setProjectId("");
@@ -113,157 +102,54 @@ export default function Dashboard() {
 
     if (res.ok) {
       await fetchProjects();
+      toast.success("Delete successful!");
     }
   }
 
-  return (
-    <div className="container mx-auto py-10 px-4 md:px-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Project Netlify</h1>
-        <Dialog
-          open={open}
-          onOpenChange={(newOpen) => {
-            if (!newOpen) {
-              setEditingId(null);
-              setProjectId("");
-              setWebhookLark("");
-            }
-            setOpen(newOpen);
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button className="cursor-pointer">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Create
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <form onSubmit={handleSubmit}>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingId ? "Edit Project" : "Add New Project"}
-                </DialogTitle>
-                <DialogDescription>
-                  Enter the project ID and webhook URL for Lark.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="projectId" className="text-left">
-                    Project ID
-                  </Label>
-                  <Input
-                    id="projectId"
-                    value={projectId}
-                    onChange={(e) => setProjectId(e.target.value)}
-                    className="col-span-3"
-                    placeholder="project-123"
-                  />
-                  {projectIdError && (
-                    <p className="text-red-500 text-sm col-span-4">
-                      {projectIdError}
-                    </p>
-                  )}
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="webhookLark" className="text-left">
-                    Webhook Lark
-                  </Label>
-                  <Input
-                    id="webhookLark"
-                    value={webhookLark}
-                    onChange={(e) => setWebhookLark(e.target.value)}
-                    className="col-span-3"
-                    placeholder="https://open.larksuite.com/webhook/v1/..."
-                  />
-                  {webhookLarkError && (
-                    <p className="text-red-500 text-sm col-span-4">
-                      {webhookLarkError}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <DialogFooter>
-                <Button
-                  type="submit"
-                  className="cursor-pointer"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="animate-spin h-4 w-4 mr-2" />
-                      Saving...
-                    </>
-                  ) : editingId ? (
-                    "Update"
-                  ) : (
-                    "Save"
-                  )}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+  const totalPages = Math.ceil(projects.length / itemsPerPage);
 
-      <div className="rounded-md border">
-        <Table>
-          <TableCaption>List of Projects Netlify</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">No.</TableHead>
-              <TableHead>Project ID</TableHead>
-              <TableHead>Webhook Lark</TableHead>
-              <TableHead>Deploy</TableHead>
-              <TableHead>Success</TableHead>
-              <TableHead>Failed</TableHead>
-              <TableHead className="w-[100px] text-center">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {projects.map((webhook, index) => (
-              <TableRow key={index}>
-                <TableCell className="font-medium">{index + 1}</TableCell>
-                <TableCell>{webhook.project_id}</TableCell>
-                <TableCell className="font-mono text-sm">
-                  {webhook.webhook_lark}
-                </TableCell>
-                <TableCell className="font-mono text-sm">
-                  {webhook.total_deploy}
-                </TableCell>
-                <TableCell className="font-mono text-sm">
-                  {webhook.success_count}
-                </TableCell>
-                <TableCell className="font-mono text-sm">
-                  {webhook.failed_count}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-center gap-2">
-                    <Button
-                      onClick={() => handleEdit(webhook)}
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 cursor-pointer"
-                    >
-                      <Edit className="h-4 w-4" />
-                      <span className="sr-only">Edit</span>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteProject(webhook.id)}
-                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="sr-only">Delete</span>
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = projects.slice(indexOfFirstItem, indexOfLastItem);
+
+  return (
+    <section className={`w-full min-h-screen `}>
+      <div className="container mx-auto py-10 px-4 md:px-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Project Netlify</h1>
+          <ProjectDialog
+            open={open}
+            setOpen={setOpen}
+            handleSubmit={handleSubmit}
+            editingId={editingId}
+            setEditingId={setEditingId}
+            projectId={projectId}
+            setProjectId={setProjectId}
+            webhookLark={webhookLark}
+            setWebhookLark={setWebhookLark}
+            isLoading={isLoading}
+            projectIdError={projectIdError}
+            webhookLarkError={webhookLarkError}
+          />
+        </div>
+
+        <div className="w-full mx-auto space-y-4">
+          <div className="rounded-md border">
+            <ProjectTable
+              projects={currentItems}
+              handleEdit={handleEdit}
+              deleteProject={deleteProject}
+            />
+          </div>
+          <ProjectPagination
+            totalPages={totalPages}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            itemsPerPage={itemsPerPage}
+            setItemsPerPage={setItemsPerPage}
+          />
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

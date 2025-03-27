@@ -5,18 +5,24 @@ import { eq } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
   try {
-    // Ambil project_id dari URL
     const urlParts = req.nextUrl.pathname.split("/");
-    const project_id = urlParts[urlParts.length - 1]; // Ambil bagian terakhir dari path
+    const project_id = urlParts[urlParts.length - 1];
 
     const body = await req.json();
-    const { name, deploy_url, state, error_message } = body;
+    const {
+      name,
+      url,
+      deploy_url,
+      state,
+      deploy_time,
+      commit_ref,
+      error_message,
+    } = body;
 
     if (!name || !deploy_url || !state) {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
 
-    // Cari project di database berdasarkan project_id
     const project = await db
       .select()
       .from(projects)
@@ -29,7 +35,6 @@ export async function POST(req: NextRequest) {
 
     const webhookLark = project[0].webhook_lark;
 
-    // Gunakan COALESCE untuk menghindari NULL
     let totalDeploy = project[0].total_deploy ?? 0;
     let successCount = project[0].success_count ?? 0;
     let failedCount = project[0].failed_count ?? 0;
@@ -37,20 +42,19 @@ export async function POST(req: NextRequest) {
     let message = "";
 
     if (state === "building") {
-      message = `🏗 Deploy *${name}* sedang dimulai...\n🔗 ${deploy_url}`;
+      message = `🚀 Deploy started for ${name}\nCommit ID: ${commit_ref}`;
       totalDeploy += 1;
       console.log("payload netlify:", body);
     } else if (state === "ready") {
-      message = `✅ Deploy *${name}* berhasil! 🎉\n🔗 ${deploy_url}`;
+      message = `✅ Deploy succeeded for ${name}\nCommit ID: ${commit_ref}\nDeploy URL: ${deploy_url} \nProduction URL: ${url}\nDeploy time: ${deploy_time}`;
       successCount += 1;
       console.log("payload netlify:", body);
     } else if (state === "error") {
-      message = `❌ Deploy *${name}* gagal!\n🔗 ${deploy_url}* ${error_message}`;
+      message = `❌ Deploy failed for ${name}\nCommit ID: ${commit_ref}\nError: ${error_message}`;
       failedCount += 1;
       console.log("payload netlify:", body);
     }
 
-    // Update counter di database
     const updateResult = await db
       .update(projects)
       .set({
@@ -63,7 +67,6 @@ export async function POST(req: NextRequest) {
 
     console.log("Update result:", updateResult);
 
-    // Kirim notifikasi ke Lark
     if (message) {
       const response = await fetch(webhookLark, {
         method: "POST",
